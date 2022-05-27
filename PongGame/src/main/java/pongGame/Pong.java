@@ -14,7 +14,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-public class Tennis extends Application {
+public class Pong extends Application {
     
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
@@ -34,7 +34,7 @@ public class Tennis extends Application {
     private double playerTwoXPos = WIDTH - BAR_WIDTH;
     
     public static void main(String[] args) {
-        launch(Tennis.class);
+        launch(Pong.class);
     }
     @Override
     public void start(Stage window) throws Exception {
