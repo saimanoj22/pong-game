@@ -16,13 +16,14 @@ import javafx.util.Duration;
 
 public class Pong extends Application {
     
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
+    private static final int WIDTH = 900;
+    private static final int HEIGHT = 500;
     private static final int BAR_WIDTH = 15;
     private static final int BAR_HEIGHT = 100;
     private static final double BALL_RADIUS = 15;
-    private int ballYSpeed = 1;
-    private int ballXSpeed = 1;
+    private float ballYSpeed = 1;
+    private float ballXSpeed = 1;
+    private static final int MAX_BALL_SPEED = 4;
     private double playerOneYPos = HEIGHT / 2;
     private double playerTwoYPos = HEIGHT / 2;
     private double ballXPos = WIDTH / 2;
@@ -30,6 +31,7 @@ public class Pong extends Application {
     private int scoreP1 = 0;
     private int scoreP2 = 0;
     private boolean gameStarted;
+    private boolean winning = false;
     private int playerOneXPos = 0;
     private double playerTwoXPos = WIDTH - BAR_WIDTH;
     
@@ -61,18 +63,33 @@ public class Pong extends Application {
         gc.setFill(Color.WHITE);
         gc.setFont(Font.font(25));
         
+        // draw line between
+        gc.fillRect(WIDTH / 2, 0, 1, HEIGHT);
+        
         if(gameStarted){
             //set ball movement
             ballXPos += ballXSpeed;
             ballYPos += ballYSpeed;
             
             // computer
-            if(ballXPos < WIDTH - WIDTH / 4){
+            if(Math.abs(ballXSpeed) < MAX_BALL_SPEED && Math.abs(ballYSpeed) < MAX_BALL_SPEED){
+                System.out.println("x : " + ballXSpeed);
                 playerTwoYPos = ballYPos - BAR_HEIGHT / 2;
             }
             else{
-                playerTwoYPos = ballYPos > playerTwoYPos + BAR_HEIGHT/2 ? playerTwoYPos += 1 : playerTwoYPos - 1;
+                if(winning){
+                    if(ballXPos < WIDTH - WIDTH / 4){
+                        playerTwoYPos = ballYPos - BAR_HEIGHT / 2;
+                    }
+                    else{
+                        playerTwoYPos = ballYPos > playerTwoYPos + BAR_HEIGHT / 2 ? playerTwoYPos += 1 : playerTwoYPos - 1;
+                    } 
+                } 
+                else{
+                    playerTwoYPos = ballYPos - BAR_HEIGHT / 2;
+                }
             }
+
             
             // draw ball
             gc.fillOval(ballXPos, ballYPos, BALL_RADIUS, BALL_RADIUS);
@@ -82,7 +99,7 @@ public class Pong extends Application {
             // set start text
             gc.setStroke(Color.WHITE);
             gc.setTextAlign(TextAlignment.CENTER);
-            gc.strokeText("on Click", WIDTH / 2, HEIGHT / 2);
+            gc.strokeText("   On Click", WIDTH / 2, HEIGHT / 2);
             
             //reset ball start position
             ballXPos = WIDTH / 2;
@@ -92,10 +109,27 @@ public class Pong extends Application {
             ballXSpeed = new Random().nextInt(2) == 0 ? 1 : -1;
             ballYSpeed = new Random().nextInt(2) == 0 ? 1 : -1;
             
+            // reset winning status
+            winning = false;
+            
         }
         
         // ball stays in canvas
         if(ballYPos > HEIGHT || ballYPos < 0)ballYSpeed *= -1;
+        
+        // player stays above canvas
+        if(playerOneYPos <= 0){
+            playerOneYPos = 0;
+        }
+        if(playerOneYPos >= HEIGHT - BAR_HEIGHT){
+            playerOneYPos = HEIGHT - BAR_HEIGHT;
+        }
+        if(playerTwoYPos <= 0){
+            playerTwoYPos = 0;
+        }
+        if(playerTwoYPos >= HEIGHT - BAR_HEIGHT){
+            playerTwoYPos = HEIGHT - BAR_HEIGHT;
+        }
         
         // computer gets a point
         if(ballXPos < playerOneXPos - BAR_WIDTH){
@@ -107,21 +141,40 @@ public class Pong extends Application {
             gameStarted = false;
         }
         
-        // increase ball speed
-        if( ((ballXPos + BALL_RADIUS > playerTwoXPos) && ballYPos >= playerTwoYPos && ballYPos <= playerTwoYPos + BAR_HEIGHT) || 
-			((ballXPos < playerOneXPos + BAR_WIDTH) && ballYPos >= playerOneYPos && ballYPos <= playerOneYPos + BAR_HEIGHT)){
-            ballYSpeed += 1 * Math.signum(ballYSpeed);
-            ballXSpeed += 1 * Math.signum(ballXSpeed);
+        //increase ball speed && organise movement
+        if((ballXPos < playerOneXPos + BAR_WIDTH) && ballYPos >= playerOneYPos && ballYPos <= playerOneYPos + BAR_HEIGHT){
             ballXSpeed *= -1;
-            ballYSpeed *= -1;
+            if(ballXSpeed < MAX_BALL_SPEED && ballYSpeed < MAX_BALL_SPEED){
+                ballXSpeed += 1 * Math.signum(ballXSpeed);
+                ballYSpeed += 1 * Math.signum(ballYSpeed);
+            }
             
+            // set 25% chance of winning
+            int chance = new Random().nextInt(10);
+            if(chance >= 6){
+                winning = true;
+            }
+            else{
+                winning = false;
+            }
+            System.out.println("Chance : " + chance);
+        }
+        
+        if((ballXPos + BALL_RADIUS > playerTwoXPos) && ballYPos >= playerTwoYPos && ballYPos <= playerTwoYPos + BAR_HEIGHT){
+            ballXSpeed *= -1;
+            if(ballXSpeed < MAX_BALL_SPEED && ballYSpeed < MAX_BALL_SPEED){
+                ballXSpeed += 0.5 * Math.signum(ballXSpeed);
+                ballYSpeed += 0.5 * Math.signum(ballYSpeed);
+            }
         }
         
         // draw score
-        gc.fillText(scoreP1 + "\t\t\t\t\t\t\t\t" + scoreP2, WIDTH / 2, 100);
+        gc.fillText(scoreP1 + "\t" + scoreP2, WIDTH / 2, 25);
         
         // draw player 1 & player 2
+        gc.setFill(Color.CRIMSON);
         gc.fillRect(playerTwoXPos, playerTwoYPos, BAR_WIDTH, BAR_HEIGHT);
+        gc.setFill(Color.AQUA);
         gc.fillRect(playerOneXPos, playerOneYPos, BAR_WIDTH, BAR_HEIGHT);
     }
 }
